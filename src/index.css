@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --c-bg: 246 248 250;
+  --c-surface: 255 255 255;
+  --c-surface-2: 241 244 247;
+  --c-border: 226 231 236;
+  --c-fg: 20 28 38;
+  --c-muted: 100 112 128;
+  --c-primary: 13 110 253;
+  --c-primary-fg: 255 255 255;
+  --c-ok: 22 163 74;
+  --c-warn: 217 119 6;
+  --c-danger: 220 38 38;
+  --c-info: 2 132 199;
+}
+.dark {
+  --c-bg: 15 20 27;
+  --c-surface: 24 31 40;
+  --c-surface-2: 32 41 52;
+  --c-border: 48 58 71;
+  --c-fg: 232 236 241;
+  --c-muted: 148 160 176;
+  --c-primary: 96 165 250;
+  --c-primary-fg: 10 20 35;
+  --c-ok: 74 222 128;
+  --c-warn: 251 191 36;
+  --c-danger: 248 113 113;
+  --c-info: 56 189 248;
+}
+
+/* Native controls (datetime-local, select, scrollbars) follow the active theme. */
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+
+html, body, #root { height: 100%; }
+body { @apply bg-bg text-fg font-sans antialiased; }
+
+@layer base {
+  /* Visible keyboard focus everywhere a component does not provide its own ring. */
+  :focus-visible { outline: 2px solid rgb(var(--c-primary) / 0.6); outline-offset: 2px; }
+  /* Numbers line up in tables and KPI tiles. */
+  input[type='number'], td, th { font-variant-numeric: tabular-nums; }
+  /* Respect reduced-motion preferences. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+}
