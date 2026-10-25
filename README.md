@@ -1,5 +1,7 @@
 # Theo dõi Tiểu đường
 
+**Dùng thử ngay:** https://minh-lgm.github.io/diabetes/
+
 Ứng dụng web tiếng Việt giúp người bị tiểu đường tự theo dõi đường huyết, HbA1c, BMI, huyết áp, mỡ máu và chức năng thận tại nhà. Mọi dữ liệu được lưu ngay trong trình duyệt của bạn (IndexedDB) — không tài khoản, không máy chủ, không gửi dữ liệu đi đâu. Giao diện mobile-first, có chế độ sáng/tối.
 
 ![Ảnh chụp màn hình — Tổng quan](docs/screenshots/dashboard.jpg)
