@@ -10,7 +10,7 @@ import SettingsPage from './pages/SettingsPage'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
