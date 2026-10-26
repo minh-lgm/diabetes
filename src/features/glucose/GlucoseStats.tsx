@@ -5,13 +5,12 @@ import { MetricCard } from './MetricCard'
 
 const CV_GOAL = 36
 
-export function GlucoseStats({ summary, unit, targets, days }: { summary: GlucoseSummary; unit: GlucoseUnit; targets: Targets; days?: number }) {
+export function GlucoseStats({ summary, unit, targets }: { summary: GlucoseSummary; unit: GlucoseUnit; targets: Targets }) {
   const unitLabel = glucoseUnitLabel(unit)
   const fmt = (mgdl: number | undefined) => (mgdl === undefined ? '—' : formatGlucose(mgdl, unit))
-  const perDay = days && summary.count ? (summary.count / days).toFixed(1) : undefined
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <MetricCard
         label="Trung bình"
         value={fmt(summary.mean)}
@@ -35,26 +34,12 @@ export function GlucoseStats({ summary, unit, targets, days }: { summary: Glucos
         hint="Ước tính HbA1c từ đường huyết"
       />
       <MetricCard
-        label="Số lần đo"
-        value={summary.count}
-        unit="lần"
-        hint={perDay ? `≈ ${perDay} lần/ngày` : 'Trong khoảng đã chọn'}
-      />
-      <MetricCard
         label="Hạ đường huyết"
         value={summary.hypoCount}
         unit="lần"
         status={summary.count ? (summary.hypoCount > 0 ? 'very_high' : 'ok') : undefined}
         statusLabel={summary.hypoCount > 0 ? 'Cần chú ý' : 'Không có'}
         hint={`Dưới ${formatGlucose(targets.hypoBelow, unit)} ${unitLabel}`}
-      />
-      <MetricCard
-        label="Thời gian trong mục tiêu"
-        value={summary.count ? summary.tir.inRange.toFixed(0) : '—'}
-        unit="%"
-        status={summary.count ? (summary.tir.inRange >= 70 ? 'ok' : summary.tir.inRange >= 50 ? 'high' : 'very_high') : undefined}
-        statusLabel={summary.count ? (summary.tir.inRange >= 70 ? 'Đạt' : 'Chưa đạt') : undefined}
-        hint={summary.count ? `${summary.tir.below.toFixed(0)}% thấp · ${summary.tir.above.toFixed(0)}% cao` : `70–180 mg/dL, mục tiêu ≥70%`}
       />
     </div>
   )

@@ -6,7 +6,7 @@ import type { GlucoseReading } from '../types'
 import { useProfile } from '../hooks/useProfile'
 import { Button, Card, ConfirmDialog, PageHeader, Segmented } from '../components/ui'
 import { formatGlucose, glucoseUnitLabel } from '../lib/calc'
-import { RANGE_OPTIONS, fmtDateTime, rangeStartIso, toDateInput } from '../lib/dates'
+import { RANGE_OPTIONS, fmtDateTime, toDateInput } from '../lib/dates'
 import { useGlucoseRange, useGlucoseReadings } from '../features/glucose/useGlucose'
 import { sortByAtDesc, summarizeGlucose } from '../features/glucose/stats'
 import { GlucoseStats } from '../features/glucose/GlucoseStats'
@@ -15,8 +15,6 @@ import { GlucoseContextChart } from '../features/glucose/GlucoseContextChart'
 import { GlucoseLog } from '../features/glucose/GlucoseLog'
 import { GlucoseForm } from '../features/glucose/GlucoseForm'
 import { downloadGlucoseCsv } from '../features/glucose/exportCsv'
-
-const DAY_MS = 86_400_000
 
 export default function GlucosePage() {
   const profile = useProfile()
@@ -31,7 +29,6 @@ export default function GlucosePage() {
   const [editing, setEditing] = useState<GlucoseReading | null>(null)
   const [pendingDelete, setPendingDelete] = useState<GlucoseReading | null>(null)
   const formOpen = formOpenState || searchParams.get('add') === '1'
-  const [now] = useState(() => Date.now())
 
   const openAdd = useCallback(() => { setEditing(null); setFormOpen(true) }, [])
   const openEdit = useCallback((r: GlucoseReading) => { setEditing(r); setFormOpen(true) }, [])
@@ -49,13 +46,6 @@ export default function GlucosePage() {
   const filtered = all
   const summary = useMemo(() => summarizeGlucose(filtered, targets, 'all'), [filtered, targets])
 
-  const rangeDays = useMemo(() => {
-    const start = rangeStartIso(range)
-    if (start) return Math.max(1, Math.round((now - new Date(start).getTime()) / DAY_MS))
-    if (!all.length) return undefined
-    const oldest = new Date(all[all.length - 1].at).getTime()
-    return Math.max(1, Math.round((now - oldest) / DAY_MS) + 1)
-  }, [range, all, now])
 
   const rangeLabel = RANGE_OPTIONS.find((o) => o.value === range)?.label ?? ''
   const unitLabel = glucoseUnitLabel(unit)
@@ -92,7 +82,7 @@ export default function GlucosePage() {
         )}
       </div>
 
-      <GlucoseStats summary={summary} unit={unit} targets={targets} days={rangeDays} />
+      <GlucoseStats summary={summary} unit={unit} targets={targets} />
 
       <div className="grid gap-4 lg:grid-cols-5">
         <Card
