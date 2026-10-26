@@ -98,9 +98,9 @@ export default function GlucosePage() {
         <Card
           className="lg:col-span-3"
           title="Xu hướng"
-          subtitle={`Từng lần đo theo thời điểm, vùng xanh là mục tiêu trước ăn, đường mảnh là trung bình 7 ngày${filtered.length ? ` · cập nhật ${fmtDateTime(filtered[0].at)}` : ''}`}
+          subtitle={`Từng lần đo, tô màu theo trạng thái; vùng xanh là mục tiêu trước ăn${filtered.length ? ` · cập nhật ${fmtDateTime(filtered[0].at)}` : ''}`}
         >
-          <GlucoseTrendChart readings={filtered} allReadings={all} unit={unit} targets={targets} />
+          <GlucoseTrendChart readings={filtered} unit={unit} targets={targets} />
         </Card>
         <Card
           className="lg:col-span-2"

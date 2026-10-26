@@ -4,16 +4,27 @@ import {
   ReferenceArea, ReferenceLine,
 } from 'recharts'
 import { endOfDay, parseISO } from 'date-fns'
-import type { GlucoseContext, GlucoseReading, Profile } from '../../types'
-import { GLUCOSE_CONTEXT_LABEL, ALL_GLUCOSE_CONTEXTS } from '../../lib/labels'
-import { toDisplayGlucose, formatGlucose, glucoseUnitLabel } from '../../lib/calc'
-import { timeTickFormatter, fmtDateTime, rangeStartIso, type RangeKey } from '../../lib/dates'
-import { useChartColors, tooltipStyle, AXIS_TICK } from '../../components/charts/theme'
-import { contextColor } from '../../components/charts/glucoseContext'
+import type { GlucoseReading, Profile } from '../../types'
+import { GLUCOSE_CONTEXT_LABEL } from '../../lib/labels'
+import { toDisplayGlucose, formatGlucose, glucoseUnitLabel, glucoseStatus, type Status } from '../../lib/calc'
+import { fmtDateTime, rangeStartIso, timeTickFormatter, type RangeKey } from '../../lib/dates'
+import { useChartColors, tooltipStyle, AXIS_TICK, type ChartColors } from '../../components/charts/theme'
 import { ChartLegend } from '../../components/charts/ChartLegend'
 import { EmptyState } from '../../components/ui'
 
-interface Point { t: number; v: number; mgdl: number; ctx: GlucoseContext; at: string }
+interface Point { t: number; v: number; reading: GlucoseReading }
+
+type Bucket = 'ok' | 'high' | 'low'
+const BUCKETS: { key: Bucket; label: string; color: keyof ChartColors }[] = [
+  { key: 'ok', label: 'Đạt mục tiêu', color: 'ok' },
+  { key: 'high', label: 'Cao', color: 'warn' },
+  { key: 'low', label: 'Hạ đường huyết', color: 'danger' },
+]
+function bucketOf(status: Status): Bucket {
+  if (status === 'low') return 'low'
+  if (status === 'high' || status === 'very_high') return 'high'
+  return 'ok'
+}
 
 export function GlucoseTrendChart({ readings, profile, range }: { readings: GlucoseReading[]; profile: Profile; range: RangeKey }) {
   const c = useChartColors()
@@ -22,14 +33,13 @@ export function GlucoseTrendChart({ readings, profile, range }: { readings: Gluc
   const unitLabel = glucoseUnitLabel(unit)
 
   const series = useMemo(() => {
-    const byCtx = new Map<GlucoseContext, Point[]>()
+    const map = new Map<Bucket, Point[]>(BUCKETS.map((b) => [b.key, []]))
     for (const r of readings) {
-      const p: Point = { t: parseISO(r.at).getTime(), v: toDisplayGlucose(r.valueMgdl, unit), mgdl: r.valueMgdl, ctx: r.context, at: r.at }
-      const list = byCtx.get(r.context)
-      if (list) list.push(p); else byCtx.set(r.context, [p])
+      const b = bucketOf(glucoseStatus(r.valueMgdl, r.context, t))
+      map.get(b)?.push({ t: parseISO(r.at).getTime(), v: toDisplayGlucose(r.valueMgdl, unit), reading: r })
     }
-    return ALL_GLUCOSE_CONTEXTS.filter((k) => byCtx.has(k)).map((k) => ({ ctx: k, points: byCtx.get(k) ?? [] }))
-  }, [readings, unit])
+    return BUCKETS.filter((b) => (map.get(b.key)?.length ?? 0) > 0).map((b) => ({ ...b, points: map.get(b.key) ?? [] }))
+  }, [readings, unit, t])
 
   const yDomain = useMemo<[number, number]>(() => {
     const vals = readings.map((r) => r.valueMgdl)
@@ -87,26 +97,27 @@ export function GlucoseTrendChart({ readings, profile, range }: { readings: Gluc
               content={({ active, payload }) => {
                 const p = payload?.[0]?.payload as Point | undefined
                 if (!active || !p) return null
+                const st = glucoseStatus(p.reading.valueMgdl, p.reading.context, t)
                 return (
                   <div style={tooltipStyle(c)} className="px-3 py-2">
-                    <div className="text-muted">{fmtDateTime(p.at)}</div>
-                    <div className="font-semibold tabular-nums text-sm">{formatGlucose(p.mgdl, unit)} <span className="font-normal text-muted">{unitLabel}</span></div>
+                    <div className="text-muted">{fmtDateTime(p.reading.at)}</div>
+                    <div className="font-semibold tabular-nums text-sm">{formatGlucose(p.reading.valueMgdl, unit)} <span className="font-normal text-muted">{unitLabel}</span></div>
                     <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: contextColor(p.ctx, c) }} />
-                      {GLUCOSE_CONTEXT_LABEL[p.ctx]}
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c[BUCKETS.find((b) => b.key === bucketOf(st))?.color ?? 'muted'] }} />
+                      {GLUCOSE_CONTEXT_LABEL[p.reading.context]}
                     </div>
                   </div>
                 )
               }}
             />
-            {series.map(({ ctx, points }) => (
-              <Scatter key={ctx} name={GLUCOSE_CONTEXT_LABEL[ctx]} data={points} fill={contextColor(ctx, c)} fillOpacity={0.9} isAnimationActive={false} />
+            {series.map((s) => (
+              <Scatter key={s.key} name={s.label} data={s.points} fill={c[s.color]} fillOpacity={0.9} isAnimationActive={false} />
             ))}
           </ScatterChart>
         </ResponsiveContainer>
       </div>
       <ChartLegend items={[
-        ...series.map(({ ctx }) => ({ label: GLUCOSE_CONTEXT_LABEL[ctx], color: contextColor(ctx, c) })),
+        ...series.map((s) => ({ label: s.label, color: c[s.color] })),
         { label: `Mục tiêu trước ăn ${formatGlucose(t.fastingMin, unit)}–${formatGlucose(t.fastingMax, unit)}`, color: c.ok },
         { label: `Sau ăn tối đa ${formatGlucose(t.postMealMax, unit)}`, color: c.warn, dashed: true },
         { label: `Hạ đường huyết < ${formatGlucose(t.hypoBelow, unit)}`, color: c.danger, dashed: true },

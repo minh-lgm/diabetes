@@ -1,29 +1,34 @@
 import { useMemo } from 'react'
 import {
-  ComposedChart, Scatter, Line, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, Legend,
+  ComposedChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, Legend,
   ReferenceArea, ReferenceLine, ResponsiveContainer,
 } from 'recharts'
 import { Activity } from 'lucide-react'
-import type { GlucoseContext, GlucoseReading, GlucoseUnit, Targets } from '../../types'
-import { formatGlucose, glucoseStatus, glucoseUnitLabel, toDisplayGlucose } from '../../lib/calc'
-import { ALL_GLUCOSE_CONTEXTS, GLUCOSE_CONTEXT_LABEL } from '../../lib/labels'
+import type { GlucoseReading, GlucoseUnit, Targets } from '../../types'
+import { formatGlucose, glucoseStatus, glucoseUnitLabel, toDisplayGlucose, type Status } from '../../lib/calc'
+import { GLUCOSE_CONTEXT_LABEL } from '../../lib/labels'
 import { fmtDateTime, timeTickFormatter } from '../../lib/dates'
-import { AXIS_TICK, tooltipStyle, useChartColors } from '../../components/charts/theme'
+import { AXIS_TICK, tooltipStyle, useChartColors, type ChartColors } from '../../components/charts/theme'
 import { EmptyState, StatusBadge } from '../../components/ui'
-import { CONTEXT_COLOR_KEY } from './context'
-import { movingAverage7d, sortByAtAsc } from './stats'
+import { sortByAtAsc } from './stats'
 
-interface ReadingPoint { kind: 'reading'; t: number; v: number; reading: GlucoseReading }
-interface AveragePoint { kind: 'average'; t: number; v: number }
-type TrendPoint = ReadingPoint | AveragePoint
+interface Point { t: number; v: number; reading: GlucoseReading }
 
-const MA_NAME = 'Trung bình 7 ngày'
+/** Points are coloured by how the reading compares with the user's targets. */
+type Bucket = 'ok' | 'high' | 'low'
+const BUCKETS: { key: Bucket; label: string; color: keyof ChartColors }[] = [
+  { key: 'ok', label: 'Đạt mục tiêu', color: 'ok' },
+  { key: 'high', label: 'Cao', color: 'warn' },
+  { key: 'low', label: 'Hạ đường huyết', color: 'danger' },
+]
+function bucketOf(status: Status): Bucket {
+  if (status === 'low') return 'low'
+  if (status === 'high' || status === 'very_high') return 'high'
+  return 'ok'
+}
 
-export function GlucoseTrendChart({ readings, allReadings, unit, targets }: {
-  /** Readings to plot as points (already filtered by context). */
+export function GlucoseTrendChart({ readings, unit, targets }: {
   readings: GlucoseReading[]
-  /** Every reading in the range, used for the moving average. */
-  allReadings: GlucoseReading[]
   unit: GlucoseUnit
   targets: Targets
 }) {
@@ -31,21 +36,14 @@ export function GlucoseTrendChart({ readings, allReadings, unit, targets }: {
   const unitLabel = glucoseUnitLabel(unit)
   const disp = (mgdl: number) => toDisplayGlucose(mgdl, unit)
 
-  const byContext = useMemo(() => {
-    const map = new Map<GlucoseContext, ReadingPoint[]>()
-    for (const c of ALL_GLUCOSE_CONTEXTS) map.set(c, [])
+  const byBucket = useMemo(() => {
+    const map = new Map<Bucket, Point[]>(BUCKETS.map((b) => [b.key, []]))
     for (const r of sortByAtAsc(readings)) {
-      map.get(r.context)?.push({ kind: 'reading', t: new Date(r.at).getTime(), v: toDisplayGlucose(r.valueMgdl, unit), reading: r })
+      const b = bucketOf(glucoseStatus(r.valueMgdl, r.context, targets))
+      map.get(b)?.push({ t: new Date(r.at).getTime(), v: toDisplayGlucose(r.valueMgdl, unit), reading: r })
     }
     return map
-  }, [readings, unit])
-
-  const average = useMemo<AveragePoint[]>(
-    () => (allReadings.length >= 2
-      ? movingAverage7d(sortByAtAsc(allReadings)).map((p) => ({ kind: 'average', t: p.t, v: toDisplayGlucose(p.ma, unit) }))
-      : []),
-    [allReadings, unit],
-  )
+  }, [readings, unit, targets])
 
   const yDomain = useMemo<[number, number]>(() => {
     const vals = readings.map((r) => r.valueMgdl)
@@ -106,56 +104,35 @@ export function GlucoseTrendChart({ readings, allReadings, unit, targets }: {
             contentStyle={tooltipStyle(colors)}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null
-              const p = payload[0]?.payload as TrendPoint | undefined
+              const p = payload[0]?.payload as Point | undefined
               if (!p) return null
               return (
                 <div style={tooltipStyle(colors)} className="px-3 py-2 space-y-1">
-                  <div className="text-muted">{fmtDateTime(new Date(p.t).toISOString())}</div>
+                  <div className="text-muted">{fmtDateTime(p.reading.at)}</div>
                   <div className="font-semibold tabular-nums text-sm">
-                    {unit === 'mmol' ? p.v.toFixed(1) : Math.round(p.v)} <span className="text-xs font-normal text-muted">{unitLabel}</span>
+                    {formatGlucose(p.reading.valueMgdl, unit)} <span className="text-xs font-normal text-muted">{unitLabel}</span>
                   </div>
-                  {p.kind === 'reading' ? (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <span>{GLUCOSE_CONTEXT_LABEL[p.reading.context]}</span>
-                        <StatusBadge status={glucoseStatus(p.reading.valueMgdl, p.reading.context, targets)} />
-                      </div>
-                      {p.reading.note && <div className="text-muted max-w-[220px] whitespace-pre-wrap">{p.reading.note}</div>}
-                    </>
-                  ) : (
-                    <div className="text-muted">{MA_NAME}</div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <span>{GLUCOSE_CONTEXT_LABEL[p.reading.context]}</span>
+                    <StatusBadge status={glucoseStatus(p.reading.valueMgdl, p.reading.context, targets)} />
+                  </div>
+                  {p.reading.note && <div className="text-muted max-w-[220px] whitespace-pre-wrap">{p.reading.note}</div>}
                 </div>
               )
             }}
           />
           <Legend iconSize={10} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
 
-          {average.length > 0 && (
-            <Line
-              data={average}
-              dataKey="v"
-              name={MA_NAME}
-              type="monotone"
-              stroke={colors.fg}
-              strokeOpacity={0.55}
-              strokeWidth={1.5}
-              dot={false}
-              activeDot={false}
-              isAnimationActive={false}
-              legendType="plainline"
-            />
-          )}
-          {ALL_GLUCOSE_CONTEXTS.map((c) => {
-            const pts = byContext.get(c) ?? []
+          {BUCKETS.map((b) => {
+            const pts = byBucket.get(b.key) ?? []
             if (!pts.length) return null
             return (
               <Scatter
-                key={c}
+                key={b.key}
                 data={pts}
                 dataKey="v"
-                name={GLUCOSE_CONTEXT_LABEL[c]}
-                fill={colors[CONTEXT_COLOR_KEY[c]]}
+                name={b.label}
+                fill={colors[b.color]}
                 fillOpacity={0.9}
                 isAnimationActive={false}
                 legendType="circle"
