@@ -170,9 +170,9 @@ export function StatTile({ label, value, unit, status = 'unknown', statusLabel, 
         <span className="text-3xl font-bold tabular-nums tracking-tight">{value}</span>
         {unit && <span className="text-sm text-muted">{unit}</span>}
       </div>
-      <div className="flex items-center justify-between gap-2 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs">
         <StatusBadge status={status} label={statusLabel} className="shrink-0" />
-        {hint && <span className="text-muted truncate">{hint}</span>}
+        {hint && <span className="text-muted min-w-0 text-right leading-snug">{hint}</span>}
       </div>
     </Comp>
   )

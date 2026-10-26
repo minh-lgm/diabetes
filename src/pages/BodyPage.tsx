@@ -84,7 +84,10 @@ export default function BodyPage() {
           hint={`Mục tiêu ≤ ${waistMax} cm (${profile.sex === 'female' ? 'nữ' : 'nam'})`} />
         <StatTile label="Cân nặng mục tiêu" value={fmtNum(targetWeight)} unit="kg"
           status={targetWeight !== undefined && latest?.weightKg !== undefined && latest.weightKg <= targetWeight + 0.05 ? 'ok' : 'unknown'}
-          hint={height ? `Để BMI = 22,9 với chiều cao ${height} cm` : 'Cần chiều cao để tính'} />
+          statusLabel={targetWeight !== undefined && latest?.weightKg !== undefined
+            ? (latest.weightKg <= targetWeight + 0.05 ? 'Đã đạt' : `Giảm ${fmtNum(latest.weightKg - targetWeight)} kg`)
+            : undefined}
+          hint={height ? `BMI 22,9 · cao ${height} cm` : 'Cần chiều cao để tính'} />
       </div>
 
       <Card title="Thang BMI" className="mb-5">
