@@ -149,10 +149,24 @@ export function StatusBadge({ status, label, className }: { status: Status; labe
 }
 
 /** KPI tile. `value` already formatted. */
-export function StatTile({ label, value, unit, status = 'unknown', statusLabel, hint, icon, onClick, className }: {
-  label: ReactNode; value: ReactNode; unit?: ReactNode; status?: Status; statusLabel?: ReactNode; hint?: ReactNode; icon?: ReactNode; onClick?: () => void; className?: string
+export function StatTile({ label, subtitle, value, unit, subValue, status, statusLabel, hint, icon, onClick, className }: {
+  label: ReactNode
+  /** Small line under the label (date, source…). */
+  subtitle?: ReactNode
+  value: ReactNode
+  unit?: ReactNode
+  /** Small line under the value (secondary metric). */
+  subValue?: ReactNode
+  /** Omit to render no badge. */
+  status?: Status
+  statusLabel?: ReactNode
+  hint?: ReactNode
+  icon?: ReactNode
+  onClick?: () => void
+  className?: string
 }) {
   const Comp = onClick ? 'button' : 'div'
+  const hasFooter = status !== undefined || hint
   return (
     <Comp
       onClick={onClick}
@@ -162,18 +176,26 @@ export function StatTile({ label, value, unit, status = 'unknown', statusLabel, 
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm text-muted truncate min-w-0" title={typeof label === 'string' ? label : undefined}>{label}</span>
-        {icon && <span className="text-muted shrink-0">{icon}</span>}
+      <div className="flex items-start justify-between gap-2">
+        <span className="min-w-0 flex flex-col">
+          <span className="text-sm text-muted truncate" title={typeof label === 'string' ? label : undefined}>{label}</span>
+          {subtitle && <span className="text-xs text-muted/80 truncate">{subtitle}</span>}
+        </span>
+        {icon && <span className="text-muted shrink-0 mt-0.5">{icon}</span>}
       </div>
-      <div className="flex flex-wrap items-baseline gap-x-1.5">
-        <span className="text-3xl font-bold tabular-nums tracking-tight">{value}</span>
-        {unit && <span className="text-sm text-muted">{unit}</span>}
+      <div className="flex flex-col gap-0.5">
+        <div className="flex flex-wrap items-baseline gap-x-1.5">
+          <span className="text-3xl font-bold tabular-nums tracking-tight">{value}</span>
+          {unit && <span className="text-sm text-muted">{unit}</span>}
+        </div>
+        {subValue && <span className="text-xs text-muted tabular-nums">{subValue}</span>}
       </div>
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs">
-        <StatusBadge status={status} label={statusLabel} className="shrink-0" />
-        {hint && <span className="text-muted min-w-0 text-right leading-snug">{hint}</span>}
-      </div>
+      {hasFooter && (
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs">
+          {status !== undefined && <StatusBadge status={status} label={statusLabel} className="shrink-0" />}
+          {hint && <span className="text-muted min-w-0 text-right leading-snug">{hint}</span>}
+        </div>
+      )}
     </Comp>
   )
 }
