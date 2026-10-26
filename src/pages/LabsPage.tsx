@@ -3,25 +3,29 @@ import { useSearchParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Plus } from 'lucide-react'
 import { db } from '../db'
-import type { KidneyPanel, LipidPanel } from '../types'
+import type { KidneyPanel, LipidPanel, ThyroidPanel } from '../types'
 import { useProfile } from '../hooks/useProfile'
 import { Button, ConfirmDialog, Modal, PageHeader, Segmented } from '../components/ui'
 import { LipidsTab } from '../features/labs/LipidsTab'
 import { KidneyTab } from '../features/labs/KidneyTab'
+import { ThyroidTab } from '../features/labs/ThyroidTab'
 import { LipidForm, type LipidFormValues } from '../features/labs/LipidForm'
 import { KidneyForm, type KidneyFormValues } from '../features/labs/KidneyForm'
+import { ThyroidForm, type ThyroidFormValues } from '../features/labs/ThyroidForm'
 
-type Tab = 'lipids' | 'kidney'
+type Tab = 'lipids' | 'kidney' | 'thyroid'
 const TAB_KEY = 'labs.tab'
 const TAB_OPTIONS: { value: Tab; label: string }[] = [
   { value: 'lipids', label: 'Mỡ máu' },
   { value: 'kidney', label: 'Chức năng thận' },
+  { value: 'thyroid', label: 'Tuyến giáp' },
 ]
+const TAB_TITLE: Record<Tab, string> = { lipids: 'mỡ máu', kidney: 'chức năng thận', thyroid: 'tuyến giáp' }
 
 function readTab(): Tab {
   try {
     const v = localStorage.getItem(TAB_KEY)
-    return v === 'kidney' ? 'kidney' : 'lipids'
+    return v === 'kidney' || v === 'thyroid' ? v : 'lipids'
   } catch { return 'lipids' }
 }
 
@@ -29,7 +33,12 @@ type ModalState =
   | { open: false }
   | { open: true; kind: 'lipids'; editing?: LipidPanel }
   | { open: true; kind: 'kidney'; editing?: KidneyPanel }
-type Deleting = { kind: 'lipids'; item: LipidPanel } | { kind: 'kidney'; item: KidneyPanel } | undefined
+  | { open: true; kind: 'thyroid'; editing?: ThyroidPanel }
+type Deleting =
+  | { kind: 'lipids'; item: LipidPanel }
+  | { kind: 'kidney'; item: KidneyPanel }
+  | { kind: 'thyroid'; item: ThyroidPanel }
+  | undefined
 
 export default function LabsPage() {
   const profile = useProfile()
@@ -57,6 +66,7 @@ export default function LabsPage() {
 
   const lipids = useLiveQuery(() => db.lipids.orderBy('at').toArray(), []) ?? []
   const kidney = useLiveQuery(() => db.kidney.orderBy('at').toArray(), []) ?? []
+  const thyroid = useLiveQuery(() => db.thyroid.orderBy('at').toArray(), []) ?? []
 
   async function submitLipid(values: LipidFormValues) {
     if (modal.open && modal.kind === 'lipids' && modal.editing?.id !== undefined) await db.lipids.update(modal.editing.id, values)
@@ -68,33 +78,43 @@ export default function LabsPage() {
     else await db.kidney.add(values)
     closeModal()
   }
+  async function submitThyroid(values: ThyroidFormValues) {
+    if (modal.open && modal.kind === 'thyroid' && modal.editing?.id !== undefined) await db.thyroid.update(modal.editing.id, values)
+    else await db.thyroid.add(values)
+    closeModal()
+  }
   async function handleDelete() {
     if (!deleting || deleting.item.id === undefined) return
     if (deleting.kind === 'lipids') await db.lipids.delete(deleting.item.id)
-    else await db.kidney.delete(deleting.item.id)
+    else if (deleting.kind === 'kidney') await db.kidney.delete(deleting.item.id)
+    else await db.thyroid.delete(deleting.item.id)
   }
 
-  const modalTitle = modal.open
-    ? `${modal.editing ? 'Sửa' : 'Ghi'} kết quả ${modal.kind === 'lipids' ? 'mỡ máu' : 'chức năng thận'}`
-    : ''
+  const modalTitle = modal.open ? `${modal.editing ? 'Sửa' : 'Ghi'} kết quả ${TAB_TITLE[modal.kind]}` : ''
 
   return (
     <div>
       <PageHeader
         title="Xét nghiệm"
-        description="Mỡ máu và chức năng thận – giá trị lưu theo mg/dL"
+        description="Mỡ máu, chức năng thận và tuyến giáp"
         actions={<Button icon={<Plus size={18} />} onClick={openAdd}>Ghi kết quả</Button>}
       />
       <Segmented value={tab} onChange={setTab} options={TAB_OPTIONS} className="mb-5" />
 
-      {tab === 'lipids' ? (
+      {tab === 'lipids' && (
         <LipidsTab panels={lipids} profile={profile} onAdd={openAdd}
           onEdit={(p) => setModal({ open: true, kind: 'lipids', editing: p })}
           onDelete={(p) => setDeleting({ kind: 'lipids', item: p })} />
-      ) : (
+      )}
+      {tab === 'kidney' && (
         <KidneyTab panels={kidney} targets={profile.targets} onAdd={openAdd}
           onEdit={(p) => setModal({ open: true, kind: 'kidney', editing: p })}
           onDelete={(p) => setDeleting({ kind: 'kidney', item: p })} />
+      )}
+      {tab === 'thyroid' && (
+        <ThyroidTab panels={thyroid} targets={profile.targets} onAdd={openAdd}
+          onEdit={(p) => setModal({ open: true, kind: 'thyroid', editing: p })}
+          onDelete={(p) => setDeleting({ kind: 'thyroid', item: p })} />
       )}
 
       <Modal open={modal.open} onClose={closeModal} title={modalTitle}>
@@ -103,6 +123,9 @@ export default function LabsPage() {
         )}
         {modal.open && modal.kind === 'kidney' && (
           <KidneyForm key={modal.editing?.id ?? 'new'} initial={modal.editing} onSubmit={submitKidney} onCancel={closeModal} />
+        )}
+        {modal.open && modal.kind === 'thyroid' && (
+          <ThyroidForm key={modal.editing?.id ?? 'new'} initial={modal.editing} targets={profile.targets} onSubmit={submitThyroid} onCancel={closeModal} />
         )}
       </Modal>
       <ConfirmDialog open={deleting !== undefined} onClose={() => setDeleting(undefined)} onConfirm={handleDelete}

@@ -47,7 +47,7 @@ Các route lấy từ `src/App.tsx`.
 - Biểu đồ hai đường + vùng mục tiêu.
 
 ### 2.6 Xét nghiệm mỡ máu & thận — `/labs`
-- Hai tab/khối: **Mỡ máu** (Total-C, LDL, HDL, Triglycerides; mg/dL) và **Thận** (creatinine mg/dL, eGFR, UACR).
+- Ba tab: **Mỡ máu** (Total-C, LDL, HDL, Triglycerides; mg/dL), **Thận** (creatinine mg/dL, eGFR, UACR) và **Tuyến giáp** (TSH mIU/L, FT4 ng/dL).
 - Thêm / sửa / xoá bộ kết quả theo ngày; các trường đều tuỳ chọn (xét nghiệm một phần).
 - Phân giai đoạn eGFR (G1–G5) và UACR (A1–A3) theo KDIGO.
 - Biểu đồ xu hướng theo chỉ số.
@@ -88,6 +88,8 @@ Mục tiêu mặc định lấy từ `DEFAULT_TARGETS` (`src/lib/targets.ts`) �
 | Triglycerides | mg/dL | ADA 2025 | < 150 (`tgMax`) |
 | eGFR | mL/phút/1,73 m² | KDIGO — G1 ≥ 90, G2 60–89, G3a 45–59, G3b 30–44, G4 15–29, G5 < 15 | ≥ 60 (`egfrMin`) |
 | UACR | mg/g | KDIGO — A1 < 30, A2 30–300, A3 > 300 | < 30 (`uacrMax`) |
+| TSH | mIU/L | Khoảng tham chiếu phổ biến 0,4–4,0; > 10 gợi ý suy giáp rõ | 0,4–4,0 (`tshMin`/`tshMax`) |
+| FT4 | ng/dL | Khoảng tham chiếu phổ biến 0,8–1,8 | cố định |
 | Creatinine | mg/dL | Nhập từ kết quả xét nghiệm | — |
 
 ### Quy tắc phân mức trạng thái (`src/lib/calc.ts`)
@@ -106,6 +108,7 @@ Mục tiêu mặc định lấy từ `DEFAULT_TARGETS` (`src/lib/targets.ts`) �
 | Triglycerides | — | < 150 | ≥ 150 | ≥ 500 |
 | eGFR | — | ≥ 60 | < 60 | < 30 |
 | UACR | — | < 30 | ≥ 30 | ≥ 300 |
+| TSH | < 0,4 | 0,4–4,0 | > 4,0 | > 10 |
 
 > Ghi chú: hàm `glucoseStatus` kiểm tra `hypoBelow` trước, sau đó phân nhánh theo bối cảnh. Ngưỡng "rất cao" là heuristic của ứng dụng để tô màu, không phải khuyến cáo lâm sàng.
 

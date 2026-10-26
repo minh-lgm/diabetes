@@ -2,7 +2,7 @@
 
 **Dùng thử ngay:** https://minh-lgm.github.io/diabetes/
 
-Ứng dụng web tiếng Việt giúp người bị tiểu đường tự theo dõi đường huyết, HbA1c, BMI, huyết áp, mỡ máu và chức năng thận tại nhà. Mọi dữ liệu được lưu ngay trong trình duyệt của bạn (IndexedDB) — không tài khoản, không máy chủ, không gửi dữ liệu đi đâu. Giao diện mobile-first, có chế độ sáng/tối.
+Ứng dụng web tiếng Việt giúp người bị tiểu đường tự theo dõi đường huyết, HbA1c, BMI, huyết áp, mỡ máu, chức năng thận và tuyến giáp tại nhà. Mọi dữ liệu được lưu ngay trong trình duyệt của bạn (IndexedDB) — không tài khoản, không máy chủ, không gửi dữ liệu đi đâu. Giao diện mobile-first, có chế độ sáng/tối.
 
 ![Ảnh chụp màn hình — Tổng quan](docs/screenshots/dashboard.jpg)
 
@@ -13,7 +13,7 @@
 - **HbA1c:** lịch sử, quy đổi mmol/mol (IFCC) và eAG, xu hướng.
 - **Cơ thể / BMI:** cân nặng, vòng eo, BMI phân loại theo chuẩn châu Á.
 - **Huyết áp:** tâm thu / tâm trương / mạch, đánh giá theo mục tiêu ADA.
-- **Xét nghiệm:** mỡ máu (Total-C, LDL, HDL, TG) và thận (creatinine, eGFR, UACR).
+- **Xét nghiệm:** mỡ máu (Total-C, LDL, HDL, TG), thận (creatinine, eGFR, UACR) và tuyến giáp (TSH, FT4).
 - **Cài đặt:** hồ sơ, đơn vị mg/dL hoặc mmol/L, giao diện sáng/tối, mục tiêu cá nhân, xuất / nhập JSON, dữ liệu demo.
 - Mục tiêu mặc định theo ADA Standards of Care 2025, có thể chỉnh theo chỉ định của bác sĩ.
 

@@ -25,10 +25,10 @@ export function DataCard() {
   const [msg, setMsg] = useState<Msg>()
 
   const counts = useLiveQuery(async () => {
-    const [glucose, hba1c, body, bloodPressure, lipids, kidney] = await Promise.all([
-      db.glucose.count(), db.hba1c.count(), db.body.count(), db.bloodPressure.count(), db.lipids.count(), db.kidney.count(),
+    const [glucose, hba1c, body, bloodPressure, lipids, kidney, thyroid] = await Promise.all([
+      db.glucose.count(), db.hba1c.count(), db.body.count(), db.bloodPressure.count(), db.lipids.count(), db.kidney.count(), db.thyroid.count(),
     ])
-    return { glucose, hba1c, body, bloodPressure, lipids, kidney } satisfies Record<CsvTable, number>
+    return { glucose, hba1c, body, bloodPressure, lipids, kidney, thyroid } satisfies Record<CsvTable, number>
   }, [])
   const total = counts ? Object.values(counts).reduce((a, b) => a + b, 0) : 0
 
@@ -84,13 +84,13 @@ export function DataCard() {
   }
 
   const pendingSummary = pending
-    ? `${(pending.glucose ?? []).length} đường huyết, ${(pending.hba1c ?? []).length} HbA1c, ${(pending.body ?? []).length} cơ thể, ${(pending.bloodPressure ?? []).length} huyết áp, ${(pending.lipids ?? []).length} mỡ máu, ${(pending.kidney ?? []).length} thận`
+    ? `${(pending.glucose ?? []).length} đường huyết, ${(pending.hba1c ?? []).length} HbA1c, ${(pending.body ?? []).length} cơ thể, ${(pending.bloodPressure ?? []).length} huyết áp, ${(pending.lipids ?? []).length} mỡ máu, ${(pending.kidney ?? []).length} thận, ${(pending.thyroid ?? []).length} tuyến giáp`
     : ''
 
   return (
     <Card title="Dữ liệu" subtitle="Sao lưu, khôi phục và xuất dữ liệu">
       <div className="space-y-5">
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           {CSV_TABLES.map((t) => (
             <div key={t} className="rounded-xl bg-surface-2 px-3 py-2">
               <div className="text-lg font-bold tabular-nums leading-tight">{counts ? counts[t] : '—'}</div>

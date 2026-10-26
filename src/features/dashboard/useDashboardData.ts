@@ -3,7 +3,7 @@ import { subYears } from 'date-fns'
 import { db } from '../../db'
 import { rangeStartIso, type RangeKey } from '../../lib/dates'
 import type {
-  GlucoseReading, HbA1cReading, BodyMetric, BloodPressureReading, LipidPanel, KidneyPanel,
+  GlucoseReading, HbA1cReading, BodyMetric, BloodPressureReading, LipidPanel, KidneyPanel, ThyroidPanel,
 } from '../../types'
 
 export interface DashboardData {
@@ -27,6 +27,7 @@ export interface DashboardData {
     bp: BloodPressureReading[]
     lipids: LipidPanel[]
     kidney: KidneyPanel[]
+    thyroid: ThyroidPanel[]
   }
   /** True when the user has no glucose, HbA1c and body data at all. */
   isEmpty: boolean
@@ -42,7 +43,7 @@ export function useDashboardData(range: RangeKey): DashboardData | undefined {
     const [
       glucoseInRange, bodyInRange, hba1cTwoYears,
       latestGlucose, latestHba1c, latestBody, latestBp, latestLipid, latestKidney,
-      rGlucose, rHba1c, rBody, rBp, rLipids, rKidney,
+      rGlucose, rHba1c, rBody, rBp, rLipids, rKidney, rThyroid,
       nGlucose, nHba1c, nBody,
     ] = await Promise.all([
       start ? db.glucose.where('at').aboveOrEqual(start).toArray() : db.glucose.toArray(),
@@ -60,6 +61,7 @@ export function useDashboardData(range: RangeKey): DashboardData | undefined {
       db.bloodPressure.orderBy('at').reverse().limit(8).toArray(),
       db.lipids.orderBy('at').reverse().limit(8).toArray(),
       db.kidney.orderBy('at').reverse().limit(8).toArray(),
+      db.thyroid.orderBy('at').reverse().limit(8).toArray(),
       db.glucose.count(), db.hba1c.count(), db.body.count(),
     ])
 
@@ -68,7 +70,7 @@ export function useDashboardData(range: RangeKey): DashboardData | undefined {
       bodyInRange: bodyInRange.sort(byAtAsc),
       hba1cTwoYears: hba1cTwoYears.sort(byAtAsc),
       latestGlucose, latestHba1c, latestBody, latestBp, latestLipid, latestKidney,
-      recent: { glucose: rGlucose, hba1c: rHba1c, body: rBody, bp: rBp, lipids: rLipids, kidney: rKidney },
+      recent: { glucose: rGlucose, hba1c: rHba1c, body: rBody, bp: rBp, lipids: rLipids, kidney: rKidney, thyroid: rThyroid },
       isEmpty: nGlucose === 0 && nHba1c === 0 && nBody === 0,
     }
   }, [start])

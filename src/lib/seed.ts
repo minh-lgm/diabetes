@@ -1,7 +1,7 @@
 // Demo data generator – 90 days of plausible readings for a type-2 patient.
 import { subDays, setHours, setMinutes } from 'date-fns'
 import { db, saveProfile } from '../db'
-import type { GlucoseReading, HbA1cReading, BodyMetric, BloodPressureReading, LipidPanel, KidneyPanel } from '../types'
+import type { GlucoseReading, HbA1cReading, BodyMetric, BloodPressureReading, LipidPanel, KidneyPanel, ThyroidPanel } from '../types'
 
 function rnd(min: number, max: number) { return min + Math.random() * (max - min) }
 function at(daysAgo: number, h: number, m = 0) { return setMinutes(setHours(subDays(new Date(), daysAgo), h), m).toISOString() }
@@ -32,13 +32,18 @@ export async function seedDemoData(): Promise<void> {
     { at: at(180, 9), creatinineMgdl: 0.98, egfr: 88, uacr: 24 },
     { at: at(2, 9), creatinineMgdl: 1.01, egfr: 85, uacr: 19 },
   ]
-  await db.transaction('rw', [db.glucose, db.hba1c, db.body, db.bloodPressure, db.lipids, db.kidney, db.profile], async () => {
+  const thyroid: ThyroidPanel[] = [
+    { at: at(365, 9), tsh: 2.1, ft4: 1.2 },
+    { at: at(2, 9), tsh: 2.6, ft4: 1.1 },
+  ]
+  await db.transaction('rw', [db.glucose, db.hba1c, db.body, db.bloodPressure, db.lipids, db.kidney, db.thyroid, db.profile], async () => {
     await db.glucose.bulkAdd(glucose)
     await db.hba1c.bulkAdd(hba1c)
     await db.body.bulkAdd(body)
     await db.bloodPressure.bulkAdd(bp)
     await db.lipids.bulkAdd(lipids)
     await db.kidney.bulkAdd(kidney)
+    await db.thyroid.bulkAdd(thyroid)
     await saveProfile({ name: 'Người dùng demo', birthYear: 1975, sex: 'male', diabetesType: 'type2', heightCm: 168 })
   })
 }

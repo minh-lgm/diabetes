@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   mgdlToMmol, mmolToMgdl, formatGlucose, hba1cToEag, eagToHba1c, gmi, hba1cToIfcc,
   bmi, bmiClass, glucoseStatus, hba1cStatus, bmiStatus, bpStatus, ldlStatus, hdlStatus,
-  tgStatus, egfrStatus, uacrStatus, mean, stddev, cv, timeInRange,
+  tgStatus, egfrStatus, uacrStatus, tshStatus, ft4Status, mean, stddev, cv, timeInRange,
 } from '../calc'
 import { DEFAULT_TARGETS as T } from '../targets'
 
@@ -85,6 +85,17 @@ describe('status evaluation against default targets', () => {
     expect(uacrStatus(20, T)).toBe('ok')
     expect(uacrStatus(100, T)).toBe('high')
     expect(uacrStatus(400, T)).toBe('very_high')
+  })
+  it('thyroid', () => {
+    expect(tshStatus(0.2, T)).toBe('low')
+    expect(tshStatus(0.4, T)).toBe('ok')
+    expect(tshStatus(2.5, T)).toBe('ok')
+    expect(tshStatus(4.0, T)).toBe('ok')
+    expect(tshStatus(6.5, T)).toBe('high')
+    expect(tshStatus(12, T)).toBe('very_high')
+    expect(ft4Status(0.7)).toBe('low')
+    expect(ft4Status(1.2)).toBe('ok')
+    expect(ft4Status(2.0)).toBe('high')
   })
 })
 

@@ -1,7 +1,7 @@
 import { db } from '../../db'
 import { GLUCOSE_CONTEXT_LABEL } from '../../lib/labels'
 
-export type CsvTable = 'glucose' | 'hba1c' | 'body' | 'bloodPressure' | 'lipids' | 'kidney'
+export type CsvTable = 'glucose' | 'hba1c' | 'body' | 'bloodPressure' | 'lipids' | 'kidney' | 'thyroid'
 
 export const CSV_TABLE_LABEL: Record<CsvTable, string> = {
   glucose: 'Đường huyết',
@@ -10,8 +10,9 @@ export const CSV_TABLE_LABEL: Record<CsvTable, string> = {
   bloodPressure: 'Huyết áp',
   lipids: 'Mỡ máu',
   kidney: 'Chức năng thận',
+  thyroid: 'Tuyến giáp',
 }
-export const CSV_TABLES: CsvTable[] = ['glucose', 'hba1c', 'body', 'bloodPressure', 'lipids', 'kidney']
+export const CSV_TABLES: CsvTable[] = ['glucose', 'hba1c', 'body', 'bloodPressure', 'lipids', 'kidney', 'thyroid']
 
 const CSV_FILE: Record<CsvTable, string> = {
   glucose: 'duong-huyet',
@@ -20,6 +21,7 @@ const CSV_FILE: Record<CsvTable, string> = {
   bloodPressure: 'huyet-ap',
   lipids: 'mo-mau',
   kidney: 'chuc-nang-than',
+  thyroid: 'tuyen-giap',
 }
 export function csvFileName(table: CsvTable, date: string): string {
   return `${CSV_FILE[table]}-${date}.csv`
@@ -80,6 +82,10 @@ export async function buildCsv(table: CsvTable): Promise<string> {
         ['thoi_diem', 'creatinine_mgdl', 'egfr', 'uacr_mg_g', 'ghi_chu'],
         rows.map((r) => [r.at, r.creatinineMgdl, r.egfr, r.uacr, r.note]),
       )
+    }
+    case 'thyroid': {
+      const rows = await db.thyroid.orderBy('at').toArray()
+      return toCsv(['thoi_diem', 'tsh_miu_l', 'ft4_ng_dl', 'ghi_chu'], rows.map((r) => [r.at, r.tsh, r.ft4, r.note]))
     }
   }
 }

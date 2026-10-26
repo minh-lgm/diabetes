@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
-import { Droplet, Percent, Scale, HeartPulse, FlaskConical, Droplets, ChevronRight } from 'lucide-react'
+import { Droplet, Percent, Scale, HeartPulse, FlaskConical, Droplets, Activity, ChevronRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Profile } from '../../types'
 import type { DashboardData } from './useDashboardData'
 import type { Status } from '../../lib/calc'
 import {
-  formatGlucose, glucoseUnitLabel, glucoseStatus, hba1cStatus, bmi, bmiStatus, bpStatus, ldlStatus, egfrStatus,
+  formatGlucose, glucoseUnitLabel, glucoseStatus, hba1cStatus, bmi, bmiStatus, bpStatus, ldlStatus, egfrStatus, tshStatus, ft4Status,
 } from '../../lib/calc'
 import { GLUCOSE_CONTEXT_LABEL } from '../../lib/labels'
 import { fmtDateTime } from '../../lib/dates'
@@ -26,7 +26,7 @@ function buildEntries(data: DashboardData, profile: Profile): Entry[] {
   const t = profile.targets
   const unit = profile.glucoseUnit
   const unitLabel = glucoseUnitLabel(unit)
-  const { glucose, hba1c, body, bp, lipids, kidney } = data.recent
+  const { glucose, hba1c, body, bp, lipids, kidney, thyroid } = data.recent
   const out: Entry[] = []
 
   for (const g of glucose) out.push({
@@ -64,6 +64,13 @@ function buildEntries(data: DashboardData, profile: Profile): Entry[] {
     value: k.egfr !== undefined ? String(Math.round(k.egfr)) : k.creatinineMgdl !== undefined ? k.creatinineMgdl.toFixed(2) : '—',
     unit: k.egfr !== undefined ? 'mL/min' : k.creatinineMgdl !== undefined ? 'mg/dL' : undefined,
     status: k.egfr !== undefined ? egfrStatus(k.egfr, t) : 'unknown', to: '/labs',
+  })
+  for (const th of thyroid ?? []) out.push({
+    key: `t-${th.id}`, at: th.at, icon: Activity,
+    label: th.tsh !== undefined ? 'Tuyến giáp · TSH' : 'Tuyến giáp · FT4',
+    value: th.tsh !== undefined ? th.tsh.toFixed(2) : th.ft4 !== undefined ? th.ft4.toFixed(2) : '—',
+    unit: th.tsh !== undefined ? 'mIU/L' : th.ft4 !== undefined ? 'ng/dL' : undefined,
+    status: th.tsh !== undefined ? tshStatus(th.tsh, t) : th.ft4 !== undefined ? ft4Status(th.ft4) : 'unknown', to: '/labs',
   })
 
   return out.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 8)

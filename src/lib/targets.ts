@@ -19,6 +19,8 @@ export const DEFAULT_TARGETS: Targets = {
   tgMax: 150,
   egfrMin: 60,
   uacrMax: 30,
+  tshMin: 0.4,
+  tshMax: 4.0,
 }
 
 export const DEFAULT_PROFILE: Profile = {

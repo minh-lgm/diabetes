@@ -41,6 +41,10 @@ const GROUPS: Group[] = [
     { key: 'egfrMin', label: 'eGFR tối thiểu', unit: 'mL/phút/1,73m²' },
     { key: 'uacrMax', label: 'UACR tối đa', unit: 'mg/g' },
   ] },
+  { title: 'Tuyến giáp', fields: [
+    { key: 'tshMin', label: 'TSH tối thiểu', unit: 'mIU/L', step: '0.01' },
+    { key: 'tshMax', label: 'TSH tối đa', unit: 'mIU/L', step: '0.01' },
+  ] },
 ]
 const ALL_FIELDS = GROUPS.flatMap((g) => g.fields)
 
@@ -84,6 +88,7 @@ export function TargetsCard({ profile }: { profile: Profile }) {
       else if (t.fastingMin >= t.fastingMax) e.form = 'Mức tối thiểu khi nhịn ăn phải nhỏ hơn mức tối đa'
       else if (t.bmiMin >= t.bmiMax) e.form = 'BMI tối thiểu phải nhỏ hơn BMI tối đa'
       else if (t.bpDiaMax >= t.bpSysMax) e.form = 'Tâm trương tối đa phải nhỏ hơn tâm thu tối đa'
+      else if (t.tshMin >= t.tshMax) e.form = 'TSH tối thiểu phải nhỏ hơn TSH tối đa'
     }
     return { targets: Object.keys(e).length ? undefined : t, errors: e }
   }

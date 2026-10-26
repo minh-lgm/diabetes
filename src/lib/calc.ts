@@ -122,6 +122,22 @@ export function uacrStatus(v: number, t: Targets): Status {
   return v >= t.uacrMax ? 'high' : 'ok'
 }
 
+/** TSH mIU/L: below range → low (hướng cường giáp); > 10 → very_high (suy giáp rõ). */
+export function tshStatus(v: number, t: Targets): Status {
+  if (v < t.tshMin) return 'low'
+  if (v > 10) return 'very_high'
+  if (v > t.tshMax) return 'high'
+  return 'ok'
+}
+/** Free T4 ng/dL, common lab reference 0.8–1.8. */
+export const FT4_MIN = 0.8
+export const FT4_MAX = 1.8
+export function ft4Status(v: number): Status {
+  if (v < FT4_MIN) return 'low'
+  if (v > FT4_MAX) return 'high'
+  return 'ok'
+}
+
 export const STATUS_LABEL: Record<Status, string> = {
   low: 'Thấp',
   ok: 'Đạt mục tiêu',

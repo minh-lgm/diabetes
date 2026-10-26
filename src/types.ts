@@ -65,7 +65,16 @@ export interface KidneyPanel {
   note?: string
 }
 
-export type DiabetesType = 'type1' | 'type2' | 'prediabetes' | 'gestational' | 'other'
+/** Thyroid panel – TSH (mIU/L) and free T4 (ng/dL) */
+export interface ThyroidPanel {
+  id?: number
+  at: string
+  tsh?: number         // mIU/L
+  ft4?: number         // ng/dL
+  note?: string
+}
+
+export type DiabetesType ='type1' | 'type2' | 'prediabetes' | 'gestational' | 'other'
 export type Sex = 'male' | 'female' | 'other'
 
 export interface Targets {
@@ -86,6 +95,8 @@ export interface Targets {
   tgMax: number           // mg/dL (<150)
   egfrMin: number         // (>=60)
   uacrMax: number         // mg/g (<30)
+  tshMin: number          // mIU/L (0.4)
+  tshMax: number          // mIU/L (4.0)
 }
 
 export interface Profile {
@@ -112,4 +123,6 @@ export interface ExportBundle {
   bloodPressure: BloodPressureReading[]
   lipids: LipidPanel[]
   kidney: KidneyPanel[]
+  /** Added in app 1.1 – absent in older backups. */
+  thyroid?: ThyroidPanel[]
 }
