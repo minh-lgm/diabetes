@@ -1,6 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, Legend } from 'recharts'
 import type { BloodPressureReading, Targets } from '../../types'
-import { fmtShort, fmtDateTime } from '../../lib/dates'
+import { timeTickFormatter, fmtDateTime } from '../../lib/dates'
 import { useChartColors, tooltipStyle, AXIS_TICK } from '../../components/charts/theme'
 
 interface Point { t: number; sys: number; dia: number; pulse?: number }
@@ -12,6 +12,7 @@ export function BpChart({ entries, targets }: { entries: BloodPressureReading[];
   const c = useChartColors()
   const data: Point[] = entries.map((e) => ({ t: new Date(e.at).getTime(), sys: e.systolic, dia: e.diastolic, pulse: e.pulse }))
   const hasPulse = data.some((d) => d.pulse !== undefined)
+  const tickX = timeTickFormatter(data.map((d) => d.t))
 
   return (
     <ResponsiveContainer width="100%" height={280}>
@@ -19,7 +20,7 @@ export function BpChart({ entries, targets }: { entries: BloodPressureReading[];
         <CartesianGrid stroke={c.border} strokeDasharray="3 3" vertical={false} />
         <XAxis
           dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time"
-          tickFormatter={(v: number) => fmtShort(new Date(v).toISOString())}
+          tickFormatter={tickX}
           tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} minTickGap={32}
         />
         <YAxis domain={[40, 'auto']} tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} width={44} />

@@ -32,6 +32,21 @@ export function fmtMonth(iso: string): string {
   return format(parseISO(iso), 'MM/yyyy', { locale: vi })
 }
 
+/**
+ * X-axis tick formatter that adapts to the span of the plotted timestamps (epoch ms):
+ * > ~10 months → "MM/yy"; crossing a year boundary → "dd/MM/yy"; otherwise "dd/MM".
+ */
+export function timeTickFormatter(times: number[]): (v: number) => string {
+  if (!times.length) return (v) => format(new Date(v), 'dd/MM', { locale: vi })
+  let lo = Infinity, hi = -Infinity
+  for (const t of times) { if (t < lo) lo = t; if (t > hi) hi = t }
+  const DAY = 86_400_000
+  const pattern = hi - lo > 300 * DAY ? 'MM/yy'
+    : new Date(lo).getFullYear() !== new Date(hi).getFullYear() ? 'dd/MM/yy'
+    : 'dd/MM'
+  return (v) => format(new Date(v), pattern, { locale: vi })
+}
+
 /** For <input type="datetime-local"> value (local time, no seconds). */
 export function toLocalInput(iso: string | Date = new Date()): string {
   const d = typeof iso === 'string' ? parseISO(iso) : iso

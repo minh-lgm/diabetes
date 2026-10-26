@@ -1,6 +1,6 @@
 import { ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, ResponsiveContainer, Legend } from 'recharts'
 import type { BodyMetric, Profile } from '../../types'
-import { fmtShort, fmtDateTime } from '../../lib/dates'
+import { timeTickFormatter, fmtDateTime } from '../../lib/dates'
 import { useChartColors, tooltipStyle, AXIS_TICK } from '../../components/charts/theme'
 import { bmiFor } from './bodyUtils'
 
@@ -16,6 +16,7 @@ export function BodyChart({ entries, profile }: { entries: BodyMetric[]; profile
   }))
   const hasBmi = data.some((d) => d.bmi !== undefined)
   const { bmiMin, bmiMax } = profile.targets
+  const tickX = timeTickFormatter(data.map((d) => d.t))
 
   return (
     <ResponsiveContainer width="100%" height={280}>
@@ -23,7 +24,7 @@ export function BodyChart({ entries, profile }: { entries: BodyMetric[]; profile
         <CartesianGrid stroke={c.border} strokeDasharray="3 3" vertical={false} />
         <XAxis
           dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time"
-          tickFormatter={(v: number) => fmtShort(new Date(v).toISOString())}
+          tickFormatter={tickX}
           tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} minTickGap={32}
         />
         <YAxis yAxisId="w" domain={['auto', 'auto']} tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} width={48} tickFormatter={(v: number) => `${v}`} />

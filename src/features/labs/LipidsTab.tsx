@@ -2,7 +2,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, R
 import { Pencil, Trash2, FlaskConical, Plus } from 'lucide-react'
 import type { LipidPanel, Profile } from '../../types'
 import { ldlStatus, hdlStatus, tgStatus, type Status } from '../../lib/calc'
-import { fmtDate, fmtShort } from '../../lib/dates'
+import { fmtDate, timeTickFormatter } from '../../lib/dates'
 import { Button, Card, EmptyState, StatTile, StatusBadge } from '../../components/ui'
 import { useChartColors, tooltipStyle, AXIS_TICK } from '../../components/charts/theme'
 import { fmtNum } from '../body/bodyUtils'
@@ -44,6 +44,7 @@ export function LipidsTab({ panels, profile, onAdd, onEdit, onDelete }: Props) {
   const nh = [...panels].reverse().map((p) => ({ p, v: nonHdl(p) })).find((x) => x.v !== undefined)
 
   const data = panels.map((p) => ({ t: new Date(p.at).getTime(), totalChol: p.totalChol, ldl: p.ldl, hdl: p.hdl, triglycerides: p.triglycerides }))
+  const tickX = timeTickFormatter(data.map((d) => d.t))
   const LINE_COLOR: Record<LipidKey, string> = { totalChol: c.muted, ldl: c.danger, hdl: c.ok, triglycerides: c.warn }
 
   return (
@@ -68,7 +69,7 @@ export function LipidsTab({ panels, profile, onAdd, onEdit, onDelete }: Props) {
             <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
               <CartesianGrid stroke={c.border} strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time"
-                tickFormatter={(v: number) => fmtShort(new Date(v).toISOString())} tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} minTickGap={32} />
+                tickFormatter={tickX} tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} minTickGap={32} />
               <YAxis domain={[0, 'auto']} tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} width={44} />
               <Tooltip contentStyle={tooltipStyle(c)}
                 labelFormatter={(l) => (typeof l === 'number' ? fmtDate(new Date(l).toISOString()) : String(l))}

@@ -2,7 +2,7 @@ import { ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLin
 import { Pencil, Trash2, Droplets, Plus } from 'lucide-react'
 import type { KidneyPanel, Targets } from '../../types'
 import { egfrStatus, uacrStatus } from '../../lib/calc'
-import { fmtDate, fmtShort } from '../../lib/dates'
+import { fmtDate, timeTickFormatter } from '../../lib/dates'
 import { Button, Card, EmptyState, StatTile, StatusBadge } from '../../components/ui'
 import { useChartColors, tooltipStyle, AXIS_TICK } from '../../components/charts/theme'
 import { fmtNum } from '../body/bodyUtils'
@@ -29,6 +29,7 @@ export function KidneyTab({ panels, targets, onAdd, onEdit, onDelete }: Props) {
   const uacr = latestOf(panels, 'uacr')
 
   const data = panels.map((p) => ({ t: new Date(p.at).getTime(), egfr: p.egfr, uacr: p.uacr }))
+  const tickX = timeTickFormatter(data.map((d) => d.t))
   const hasEgfr = data.some((d) => d.egfr !== undefined)
   const hasUacr = data.some((d) => d.uacr !== undefined)
 
@@ -52,7 +53,7 @@ export function KidneyTab({ panels, targets, onAdd, onEdit, onDelete }: Props) {
             <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
               <CartesianGrid stroke={c.border} strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time"
-                tickFormatter={(v: number) => fmtShort(new Date(v).toISOString())} tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} minTickGap={32} />
+                tickFormatter={tickX} tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} minTickGap={32} />
               <YAxis yAxisId="egfr" domain={[0, 'auto']} tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} width={44} />
               {hasUacr && <YAxis yAxisId="uacr" orientation="right" domain={[0, 'auto']} tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} width={44} />}
               <Tooltip contentStyle={tooltipStyle(c)}

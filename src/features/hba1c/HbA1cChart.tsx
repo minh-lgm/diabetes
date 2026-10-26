@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, R
 import { TrendingDown } from 'lucide-react'
 import type { GlucoseUnit, HbA1cReading, Targets } from '../../types'
 import { formatGlucose, glucoseUnitLabel, hba1cStatus, hba1cToEag } from '../../lib/calc'
-import { fmtDate, fmtShort } from '../../lib/dates'
+import { fmtDate, timeTickFormatter } from '../../lib/dates'
 import { AXIS_TICK, tooltipStyle, useChartColors } from '../../components/charts/theme'
 import { EmptyState, StatusBadge } from '../../components/ui'
 import { sortByAtAsc } from '../glucose/stats'
@@ -22,6 +22,8 @@ export function HbA1cChart({ records, unit, targets }: { records: HbA1cReading[]
 
   const yMax = useMemo(() => Math.ceil(Math.max(targets.hba1cMax, ...data.map((d) => d.percent)) + 1), [data, targets])
 
+  const tickX = timeTickFormatter(data.map((d) => d.t))
+
   if (!records.length) {
     return <EmptyState icon={<TrendingDown size={28} />} title="Chưa có kết quả HbA1c" description="Ghi kết quả xét nghiệm để theo dõi diễn tiến theo thời gian." />
   }
@@ -36,7 +38,7 @@ export function HbA1cChart({ records, unit, targets }: { records: HbA1cReading[]
             dataKey="t"
             domain={['dataMin', 'dataMax']}
             scale="time"
-            tickFormatter={(t: number) => fmtShort(new Date(t).toISOString())}
+            tickFormatter={tickX}
             tick={{ ...AXIS_TICK, fill: colors.muted }}
             stroke={colors.border}
             tickMargin={6}

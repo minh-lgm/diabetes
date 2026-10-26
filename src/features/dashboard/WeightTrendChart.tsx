@@ -3,7 +3,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { parseISO } from 'date-fns'
 import type { BodyMetric, Profile } from '../../types'
 import { bmi, bmiClass, BMI_CLASS_LABEL } from '../../lib/calc'
-import { fmtShort, fmtDate } from '../../lib/dates'
+import { timeTickFormatter, fmtDate } from '../../lib/dates'
 import { useChartColors, tooltipStyle, AXIS_TICK } from '../../components/charts/theme'
 import { ChartLegend } from '../../components/charts/ChartLegend'
 import { EmptyState } from '../../components/ui'
@@ -25,6 +25,8 @@ export function WeightTrendChart({ entries, profile }: { entries: BodyMetric[]; 
     return [Math.floor(Math.min(...vals) - 2), Math.ceil(Math.max(...vals) + 2)]
   }, [data])
 
+  const tickX = timeTickFormatter(data.map((d) => d.t))
+
   if (!data.length) {
     return <EmptyState title="Chưa có cân nặng trong khoảng này" description="Ghi cân nặng mỗi tuần để theo dõi xu hướng." />
   }
@@ -37,7 +39,7 @@ export function WeightTrendChart({ entries, profile }: { entries: BodyMetric[]; 
             <CartesianGrid stroke={c.border} strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time"
-              tickFormatter={(v: number) => fmtShort(new Date(v).toISOString())}
+              tickFormatter={tickX}
               tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} tickLine={false} minTickGap={28}
             />
             <YAxis

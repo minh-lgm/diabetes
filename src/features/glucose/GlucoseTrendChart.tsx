@@ -7,7 +7,7 @@ import { Activity } from 'lucide-react'
 import type { GlucoseContext, GlucoseReading, GlucoseUnit, Targets } from '../../types'
 import { formatGlucose, glucoseStatus, glucoseUnitLabel, toDisplayGlucose } from '../../lib/calc'
 import { GLUCOSE_CONTEXTS, GLUCOSE_CONTEXT_LABEL } from '../../lib/labels'
-import { fmtDateTime, fmtShort } from '../../lib/dates'
+import { fmtDateTime, timeTickFormatter } from '../../lib/dates'
 import { AXIS_TICK, tooltipStyle, useChartColors } from '../../components/charts/theme'
 import { EmptyState, StatusBadge } from '../../components/ui'
 import { CONTEXT_COLOR_KEY } from './context'
@@ -55,6 +55,8 @@ export function GlucoseTrendChart({ readings, allReadings, unit, targets }: {
     return [Math.max(0, Math.floor(lo - pad)), Math.ceil(hi + pad)]
   }, [readings, targets, unit])
 
+  const tickX = timeTickFormatter(readings.map((r) => new Date(r.at).getTime()))
+
   if (!readings.length) {
     return <EmptyState icon={<Activity size={28} />} title="Chưa có dữ liệu để vẽ biểu đồ" description="Ghi chỉ số đường huyết để theo dõi xu hướng theo thời gian." />
   }
@@ -69,7 +71,7 @@ export function GlucoseTrendChart({ readings, allReadings, unit, targets }: {
             dataKey="t"
             domain={['dataMin', 'dataMax']}
             scale="time"
-            tickFormatter={(t: number) => fmtShort(new Date(t).toISOString())}
+            tickFormatter={tickX}
             tick={{ ...AXIS_TICK, fill: colors.muted }}
             stroke={colors.border}
             tickMargin={6}

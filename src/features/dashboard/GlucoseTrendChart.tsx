@@ -7,7 +7,7 @@ import { endOfDay, parseISO } from 'date-fns'
 import type { GlucoseContext, GlucoseReading, Profile } from '../../types'
 import { GLUCOSE_CONTEXT_LABEL, GLUCOSE_CONTEXTS } from '../../lib/labels'
 import { toDisplayGlucose, formatGlucose, glucoseUnitLabel } from '../../lib/calc'
-import { fmtShort, fmtDateTime, rangeStartIso, type RangeKey } from '../../lib/dates'
+import { timeTickFormatter, fmtDateTime, rangeStartIso, type RangeKey } from '../../lib/dates'
 import { useChartColors, tooltipStyle, AXIS_TICK } from '../../components/charts/theme'
 import { contextColor } from '../../components/charts/glucoseContext'
 import { ChartLegend } from '../../components/charts/ChartLegend'
@@ -55,6 +55,8 @@ export function GlucoseTrendChart({ readings, profile, range }: { readings: Gluc
     return [lo, hi]
   }, [readings, range, now])
 
+  const tickX = timeTickFormatter(readings.map((r) => parseISO(r.at).getTime()))
+
   if (!readings.length) {
     return <EmptyState title="Chưa có đường huyết trong khoảng này" description="Chọn khoảng thời gian rộng hơn hoặc ghi chỉ số mới." />
   }
@@ -69,7 +71,7 @@ export function GlucoseTrendChart({ readings, profile, range }: { readings: Gluc
             <CartesianGrid stroke={c.border} strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="t" type="number" domain={xDomain} scale="time"
-              tickFormatter={(v: number) => fmtShort(new Date(v).toISOString())}
+              tickFormatter={tickX}
               tick={{ ...AXIS_TICK, fill: c.muted }} stroke={c.border} tickLine={false} minTickGap={28}
             />
             <YAxis
