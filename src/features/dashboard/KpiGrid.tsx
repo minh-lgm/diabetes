@@ -9,8 +9,12 @@ import {
 } from '../../lib/calc'
 import { fmtDate } from '../../lib/dates'
 import { relativeTime } from './relativeTime'
+import type { GlucoseContext } from '../../types'
 
 const EMPTY = '—'
+const CTX_SHORT: Record<GlucoseContext, string> = {
+  fasting: 'Nhịn ăn', before_meal: 'Trước ăn', after_meal: 'Sau ăn', bedtime: 'Trước ngủ', random: 'Bất kỳ',
+}
 
 export function KpiGrid({ data, profile }: { data: DashboardData; profile: Profile }) {
   const navigate = useNavigate()
@@ -18,7 +22,7 @@ export function KpiGrid({ data, profile }: { data: DashboardData; profile: Profi
   const unit = profile.glucoseUnit
   const unitLabel = glucoseUnitLabel(unit)
 
-  const g = data.latestFasting
+  const g = data.latestGlucose
   const a = data.latestHba1c
   const b = data.latestBody
   const bp = data.latestBp
@@ -31,7 +35,7 @@ export function KpiGrid({ data, profile }: { data: DashboardData; profile: Profi
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
       <StatTile
-        label="Đường huyết nhịn ăn"
+        label={g ? `Đường huyết · ${CTX_SHORT[g.context]}` : 'Đường huyết gần nhất'}
         icon={<Droplet size={16} aria-hidden />}
         value={g ? formatGlucose(g.valueMgdl, unit) : EMPTY}
         unit={g ? unitLabel : undefined}

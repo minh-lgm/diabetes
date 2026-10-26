@@ -1,7 +1,7 @@
-import { formatDistanceToNow, parseISO } from 'date-fns'
+import { formatDistanceToNowStrict, parseISO } from 'date-fns'
 import { vi } from 'date-fns/locale'
 
-/** "khoảng 2 giờ trước", "3 ngày trước" … */
+/** Short relative time: "2 giờ trước", "3 ngày trước" … (strict → no "khoảng"/"gần") */
 export function relativeTime(iso: string): string {
-  return formatDistanceToNow(parseISO(iso), { addSuffix: true, locale: vi })
+  return formatDistanceToNowStrict(parseISO(iso), { addSuffix: true, locale: vi })
 }

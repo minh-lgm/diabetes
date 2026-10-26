@@ -12,7 +12,8 @@ export interface DashboardData {
   bodyInRange: BodyMetric[]
   /** HbA1c in the last two years, ascending. */
   hba1cTwoYears: HbA1cReading[]
-  latestFasting?: GlucoseReading
+  /** Most recent glucose reading, any context. */
+  latestGlucose?: GlucoseReading
   latestHba1c?: HbA1cReading
   latestBody?: BodyMetric
   latestBp?: BloodPressureReading
@@ -40,14 +41,14 @@ export function useDashboardData(range: RangeKey): DashboardData | undefined {
     const twoYearsAgo = subYears(new Date(), 2).toISOString()
     const [
       glucoseInRange, bodyInRange, hba1cTwoYears,
-      latestFasting, latestHba1c, latestBody, latestBp, latestLipid, latestKidney,
+      latestGlucose, latestHba1c, latestBody, latestBp, latestLipid, latestKidney,
       rGlucose, rHba1c, rBody, rBp, rLipids, rKidney,
       nGlucose, nHba1c, nBody,
     ] = await Promise.all([
       start ? db.glucose.where('at').aboveOrEqual(start).toArray() : db.glucose.toArray(),
       start ? db.body.where('at').aboveOrEqual(start).toArray() : db.body.toArray(),
       db.hba1c.where('at').aboveOrEqual(twoYearsAgo).toArray(),
-      db.glucose.orderBy('at').reverse().filter((g) => g.context === 'fasting').first(),
+      db.glucose.orderBy('at').last(),
       db.hba1c.orderBy('at').last(),
       db.body.orderBy('at').reverse().filter((b) => b.weightKg !== undefined).first(),
       db.bloodPressure.orderBy('at').last(),
@@ -66,7 +67,7 @@ export function useDashboardData(range: RangeKey): DashboardData | undefined {
       glucoseInRange: glucoseInRange.sort(byAtAsc),
       bodyInRange: bodyInRange.sort(byAtAsc),
       hba1cTwoYears: hba1cTwoYears.sort(byAtAsc),
-      latestFasting, latestHba1c, latestBody, latestBp, latestLipid, latestKidney,
+      latestGlucose, latestHba1c, latestBody, latestBp, latestLipid, latestKidney,
       recent: { glucose: rGlucose, hba1c: rHba1c, body: rBody, bp: rBp, lipids: rLipids, kidney: rKidney },
       isEmpty: nGlucose === 0 && nHba1c === 0 && nBody === 0,
     }

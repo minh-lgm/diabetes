@@ -40,11 +40,20 @@ export function GlucoseTrendChart({ readings, profile, range }: { readings: Gluc
   }, [readings, t.hypoBelow, t.postMealMax, unit])
 
   const [now] = useState(() => Date.now())
+  // Fit the time axis to the data actually present (padded), clamped to the selected range,
+  // so a handful of readings on one or two days does not pile up at the right edge.
   const xDomain = useMemo<[number, number] | ['auto', 'auto']>(() => {
+    if (!readings.length) return ['auto', 'auto']
+    const times = readings.map((r) => parseISO(r.at).getTime())
+    const dataMin = Math.min(...times)
+    const dataMax = Math.max(...times)
+    const HOUR = 3_600_000
+    const pad = Math.max(6 * HOUR, (dataMax - dataMin) * 0.06)
     const start = rangeStartIso(range, new Date(now))
-    if (!start) return ['auto', 'auto']
-    return [parseISO(start).getTime(), endOfDay(now).getTime()]
-  }, [range, now])
+    const lo = Math.max(start ? parseISO(start).getTime() : -Infinity, dataMin - pad)
+    const hi = Math.min(endOfDay(now).getTime(), dataMax + pad)
+    return [lo, hi]
+  }, [readings, range, now])
 
   if (!readings.length) {
     return <EmptyState title="Chưa có đường huyết trong khoảng này" description="Chọn khoảng thời gian rộng hơn hoặc ghi chỉ số mới." />
