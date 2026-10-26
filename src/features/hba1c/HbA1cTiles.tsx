@@ -1,12 +1,8 @@
-import { useState } from 'react'
-import { addMonths, differenceInCalendarDays, parseISO } from 'date-fns'
-import { ArrowDown, ArrowUp, CalendarClock, Minus } from 'lucide-react'
+import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import type { GlucoseReading, HbA1cReading, Profile } from '../../types'
 import { formatGlucose, glucoseUnitLabel, gmi, hba1cStatus, hba1cToEag, hba1cToIfcc, mean } from '../../lib/calc'
 import { fmtDate } from '../../lib/dates'
 import { MetricCard } from '../glucose/MetricCard'
-
-const RETEST_MONTHS = 3
 
 export function HbA1cTiles({ records, glucose90d, profile }: {
   /** Sorted descending by `at`. */
@@ -26,12 +22,8 @@ export function HbA1cTiles({ records, glucose90d, profile }: {
   const delta = latest && previous ? latest.percent - previous.percent : undefined
   const deltaRounded = delta === undefined ? undefined : Math.round(delta * 10) / 10
 
-  const [today] = useState(() => new Date())
-  const dueDate = latest ? addMonths(parseISO(latest.at), RETEST_MONTHS) : undefined
-  const daysToDue = dueDate ? differenceInCalendarDays(dueDate, today) : undefined
-
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
       <MetricCard
         label="HbA1c gần nhất"
         value={latest ? latest.percent.toFixed(1) : '—'}
@@ -72,21 +64,6 @@ export function HbA1cTiles({ records, glucose90d, profile }: {
         status={deltaRounded === undefined ? undefined : deltaRounded < 0 ? 'ok' : deltaRounded > 0 ? 'high' : 'unknown'}
         statusLabel={deltaRounded === undefined ? undefined : deltaRounded < 0 ? 'Giảm' : deltaRounded > 0 ? 'Tăng' : 'Không đổi'}
         hint={previous ? `So với ${fmtDate(previous.at)}` : 'Cần ít nhất 2 kết quả'}
-      />
-      <MetricCard
-        label="Lần xét nghiệm tiếp theo"
-        value={dueDate ? fmtDate(dueDate.toISOString()) : '—'}
-        small
-        icon={<CalendarClock size={18} />}
-        status={daysToDue === undefined ? undefined : daysToDue < 0 ? 'high' : daysToDue <= 14 ? 'low' : 'ok'}
-        statusLabel={daysToDue === undefined ? undefined : daysToDue < 0 ? 'Quá hạn' : daysToDue <= 14 ? 'Sắp đến hạn' : 'Đúng lịch'}
-        hint={
-          daysToDue === undefined
-            ? `Mỗi ${RETEST_MONTHS} tháng`
-            : daysToDue < 0
-              ? `Quá ${Math.abs(daysToDue)} ngày`
-              : daysToDue === 0 ? 'Hôm nay' : `Còn ${daysToDue} ngày`
-        }
       />
     </div>
   )
