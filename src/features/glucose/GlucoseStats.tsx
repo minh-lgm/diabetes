@@ -11,7 +11,7 @@ export function GlucoseStats({ summary, unit, targets, days }: { summary: Glucos
   const perDay = days && summary.count ? (summary.count / days).toFixed(1) : undefined
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
       <MetricCard
         label="Trung bình"
         value={fmt(summary.mean)}
