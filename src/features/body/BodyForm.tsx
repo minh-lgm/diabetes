@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import type { BodyMetric, Profile } from '../../types'
 import { bmi, bmiClass, BMI_CLASS_LABEL, bmiStatus } from '../../lib/calc'
-import { toLocalInput, fromLocalInput } from '../../lib/dates'
+import { toDateInput } from '../../lib/dates'
+import { dateInputToIso, isValidDateInput } from '../labs/labsUtils'
 import { Button, Field, Input, StatusBadge, Textarea } from '../../components/ui'
 import { parseNum, rangeError } from './bodyUtils'
 
@@ -17,7 +18,7 @@ interface Props {
 interface Errors { at?: string; weight?: string; height?: string; waist?: string }
 
 export function BodyForm({ initial, profile, onSubmit, onCancel }: Props) {
-  const [at, setAt] = useState(toLocalInput(initial?.at ?? new Date()))
+  const [at, setAt] = useState(toDateInput(initial?.at ?? new Date()))
   const [weight, setWeight] = useState(initial?.weightKg?.toString() ?? '')
   const [height, setHeight] = useState((initial?.heightCm ?? profile.heightCm)?.toString() ?? '')
   const [waist, setWaist] = useState(initial?.waistCm?.toString() ?? '')
@@ -31,7 +32,7 @@ export function BodyForm({ initial, profile, onSubmit, onCancel }: Props) {
 
   function validate(): Errors {
     const e: Errors = {}
-    if (!at || Number.isNaN(new Date(at).getTime())) e.at = 'Vui lòng chọn thời điểm hợp lệ'
+    if (!isValidDateInput(at)) e.at = 'Vui lòng chọn ngày hợp lệ'
     e.weight = rangeError(w, 20, 300, 'Cân nặng', 'kg', true)
     e.height = rangeError(h, 100, 250, 'Chiều cao', 'cm')
     e.waist = rangeError(parseNum(waist), 40, 200, 'Vòng eo', 'cm')
@@ -46,7 +47,7 @@ export function BodyForm({ initial, profile, onSubmit, onCancel }: Props) {
     setBusy(true)
     try {
       await onSubmit({
-        at: fromLocalInput(at),
+        at: dateInputToIso(at, initial?.at),
         weightKg: w,
         heightCm: h,
         waistCm: parseNum(waist),
@@ -59,8 +60,8 @@ export function BodyForm({ initial, profile, onSubmit, onCancel }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      <Field label="Thời điểm" error={errors.at}>
-        <Input type="datetime-local" value={at} onChange={(e) => setAt(e.target.value)} required />
+      <Field label="Ngày" error={errors.at}>
+        <Input type="date" value={at} onChange={(e) => setAt(e.target.value)} required />
       </Field>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Cân nặng" error={errors.weight}>
