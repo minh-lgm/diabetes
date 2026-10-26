@@ -21,7 +21,6 @@ export function HbA1cTiles({ records, glucose90d, profile }: {
 
   const glucoseMean = mean(glucose90d.map((g) => g.valueMgdl))
   const gmiValue = glucoseMean === undefined ? undefined : gmi(glucoseMean)
-  const gmiGap = gmiValue !== undefined && latest ? Math.round((gmiValue - latest.percent) * 10) / 10 : undefined
 
   const delta = latest && previous ? Math.round((latest.percent - previous.percent) * 10) / 10 : undefined
 
@@ -51,20 +50,15 @@ export function HbA1cTiles({ records, glucose90d, profile }: {
       />
       <StatTile
         label="GMI 90 ngày"
+        subtitle={gmiValue === undefined ? 'Chưa có đường huyết 90 ngày' : `Từ ${glucose90d.length} lần tự đo`}
         icon={<Activity size={16} aria-hidden />}
         value={gmiValue === undefined ? EMPTY : gmiValue.toFixed(1)}
         unit={gmiValue === undefined ? undefined : '%'}
-        subValue={
-          gmiValue === undefined
-            ? 'Chưa có đường huyết 90 ngày'
-            : gmiGap !== undefined
-              ? `Lệch ${gmiGap > 0 ? '+' : ''}${gmiGap.toFixed(1)} so với HbA1c`
-              : `${glucose90d.length} lần đo`
-        }
         status={gmiValue === undefined ? 'unknown' : hba1cStatus(gmiValue, targets)}
       />
       <StatTile
         label="So với lần trước"
+        subtitle={previous ? 'Hai kết quả gần nhất' : 'Cần ít nhất 2 kết quả'}
         icon={delta === undefined || delta === 0 ? <Minus size={16} aria-hidden /> : delta < 0 ? <ArrowDown size={16} aria-hidden /> : <ArrowUp size={16} aria-hidden />}
         value={delta === undefined ? EMPTY : `${delta > 0 ? '+' : ''}${delta.toFixed(1)}`}
         unit={delta === undefined ? undefined : 'điểm'}
