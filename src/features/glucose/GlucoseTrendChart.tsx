@@ -6,7 +6,7 @@ import {
 import { Activity } from 'lucide-react'
 import type { GlucoseContext, GlucoseReading, GlucoseUnit, Targets } from '../../types'
 import { formatGlucose, glucoseStatus, glucoseUnitLabel, toDisplayGlucose } from '../../lib/calc'
-import { GLUCOSE_CONTEXTS, GLUCOSE_CONTEXT_LABEL } from '../../lib/labels'
+import { ALL_GLUCOSE_CONTEXTS, GLUCOSE_CONTEXT_LABEL } from '../../lib/labels'
 import { fmtDateTime, timeTickFormatter } from '../../lib/dates'
 import { AXIS_TICK, tooltipStyle, useChartColors } from '../../components/charts/theme'
 import { EmptyState, StatusBadge } from '../../components/ui'
@@ -33,7 +33,7 @@ export function GlucoseTrendChart({ readings, allReadings, unit, targets }: {
 
   const byContext = useMemo(() => {
     const map = new Map<GlucoseContext, ReadingPoint[]>()
-    for (const c of GLUCOSE_CONTEXTS) map.set(c, [])
+    for (const c of ALL_GLUCOSE_CONTEXTS) map.set(c, [])
     for (const r of sortByAtAsc(readings)) {
       map.get(r.context)?.push({ kind: 'reading', t: new Date(r.at).getTime(), v: toDisplayGlucose(r.valueMgdl, unit), reading: r })
     }
@@ -146,7 +146,7 @@ export function GlucoseTrendChart({ readings, allReadings, unit, targets }: {
               legendType="plainline"
             />
           )}
-          {GLUCOSE_CONTEXTS.map((c) => {
+          {ALL_GLUCOSE_CONTEXTS.map((c) => {
             const pts = byContext.get(c) ?? []
             if (!pts.length) return null
             return (

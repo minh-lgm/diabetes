@@ -47,7 +47,7 @@ function GlucoseFormBody({ profile, initial, onDone }: { profile: Profile; initi
 
   const [at, setAt] = useState(() => toLocalInput(initial?.at ?? new Date()))
   const [value, setValue] = useState(() => (initial ? formatGlucose(initial.valueMgdl, unit) : ''))
-  const [context, setContext] = useState<GlucoseContext>(initial?.context ?? 'fasting')
+  const [context, setContext] = useState<GlucoseContext>(initial?.context ?? 'before_meal')
   const [note, setNote] = useState(initial?.note ?? '')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)

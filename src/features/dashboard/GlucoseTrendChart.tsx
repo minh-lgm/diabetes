@@ -5,7 +5,7 @@ import {
 } from 'recharts'
 import { endOfDay, parseISO } from 'date-fns'
 import type { GlucoseContext, GlucoseReading, Profile } from '../../types'
-import { GLUCOSE_CONTEXT_LABEL, GLUCOSE_CONTEXTS } from '../../lib/labels'
+import { GLUCOSE_CONTEXT_LABEL, ALL_GLUCOSE_CONTEXTS } from '../../lib/labels'
 import { toDisplayGlucose, formatGlucose, glucoseUnitLabel } from '../../lib/calc'
 import { timeTickFormatter, fmtDateTime, rangeStartIso, type RangeKey } from '../../lib/dates'
 import { useChartColors, tooltipStyle, AXIS_TICK } from '../../components/charts/theme'
@@ -28,7 +28,7 @@ export function GlucoseTrendChart({ readings, profile, range }: { readings: Gluc
       const list = byCtx.get(r.context)
       if (list) list.push(p); else byCtx.set(r.context, [p])
     }
-    return GLUCOSE_CONTEXTS.filter((k) => byCtx.has(k)).map((k) => ({ ctx: k, points: byCtx.get(k) ?? [] }))
+    return ALL_GLUCOSE_CONTEXTS.filter((k) => byCtx.has(k)).map((k) => ({ ctx: k, points: byCtx.get(k) ?? [] }))
   }, [readings, unit])
 
   const yDomain = useMemo<[number, number]>(() => {
@@ -107,7 +107,7 @@ export function GlucoseTrendChart({ readings, profile, range }: { readings: Gluc
       </div>
       <ChartLegend items={[
         ...series.map(({ ctx }) => ({ label: GLUCOSE_CONTEXT_LABEL[ctx], color: contextColor(ctx, c) })),
-        { label: `Mục tiêu nhịn ăn ${formatGlucose(t.fastingMin, unit)}–${formatGlucose(t.fastingMax, unit)}`, color: c.ok },
+        { label: `Mục tiêu trước ăn ${formatGlucose(t.fastingMin, unit)}–${formatGlucose(t.fastingMax, unit)}`, color: c.ok },
         { label: `Sau ăn tối đa ${formatGlucose(t.postMealMax, unit)}`, color: c.warn, dashed: true },
         { label: `Hạ đường huyết < ${formatGlucose(t.hypoBelow, unit)}`, color: c.danger, dashed: true },
       ]} />

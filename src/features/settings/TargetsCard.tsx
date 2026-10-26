@@ -14,8 +14,8 @@ interface Group { title: string; fields: FieldDef[] }
 const GROUPS: Group[] = [
   { title: 'Đường huyết', fields: [
     { key: 'hypoBelow', label: 'Hạ đường huyết dưới', unit: 'mg/dL', glucose: true },
-    { key: 'fastingMin', label: 'Nhịn ăn / trước ăn – tối thiểu', unit: 'mg/dL', glucose: true },
-    { key: 'fastingMax', label: 'Nhịn ăn / trước ăn – tối đa', unit: 'mg/dL', glucose: true },
+    { key: 'fastingMin', label: 'Trước ăn – tối thiểu', unit: 'mg/dL', glucose: true },
+    { key: 'fastingMax', label: 'Trước ăn – tối đa', unit: 'mg/dL', glucose: true },
     { key: 'postMealMax', label: 'Sau ăn 1–2h – tối đa', unit: 'mg/dL', glucose: true },
   ] },
   { title: 'HbA1c', fields: [
@@ -84,8 +84,8 @@ export function TargetsCard({ profile }: { profile: Profile }) {
       t[d.key] = d.glucose ? Math.round(fromDisplayGlucose(n, unit) * 10) / 10 : n
     }
     if (!Object.keys(e).length) {
-      if (t.hypoBelow >= t.fastingMin) e.form = 'Ngưỡng hạ đường huyết phải nhỏ hơn mức tối thiểu khi nhịn ăn'
-      else if (t.fastingMin >= t.fastingMax) e.form = 'Mức tối thiểu khi nhịn ăn phải nhỏ hơn mức tối đa'
+      if (t.hypoBelow >= t.fastingMin) e.form = 'Ngưỡng hạ đường huyết phải nhỏ hơn mức tối thiểu trước ăn'
+      else if (t.fastingMin >= t.fastingMax) e.form = 'Mức tối thiểu trước ăn phải nhỏ hơn mức tối đa'
       else if (t.bmiMin >= t.bmiMax) e.form = 'BMI tối thiểu phải nhỏ hơn BMI tối đa'
       else if (t.bpDiaMax >= t.bpSysMax) e.form = 'Tâm trương tối đa phải nhỏ hơn tâm thu tối đa'
       else if (t.tshMin >= t.tshMax) e.form = 'TSH tối thiểu phải nhỏ hơn TSH tối đa'

@@ -1,6 +1,6 @@
 import type { GlucoseContext, GlucoseReading, Targets } from '../../types'
 import { cv, glucoseStatus, gmi, mean, stddev, timeInRange, type Status } from '../../lib/calc'
-import { GLUCOSE_CONTEXTS } from '../../lib/labels'
+import { ALL_GLUCOSE_CONTEXTS } from '../../lib/labels'
 import type { ContextFilter } from './context'
 
 export interface GlucoseSummary {
@@ -60,7 +60,7 @@ export interface ContextMean { context: GlucoseContext; mean: number; count: num
 /** Mean glucose per measuring context, in mg/dL; contexts without readings are omitted. */
 export function meanByContext(readings: GlucoseReading[]): ContextMean[] {
   const out: ContextMean[] = []
-  for (const context of GLUCOSE_CONTEXTS) {
+  for (const context of ALL_GLUCOSE_CONTEXTS) {
     const values = readings.filter((r) => r.context === context).map((r) => r.valueMgdl)
     const m = mean(values)
     if (m !== undefined) out.push({ context, mean: m, count: values.length })

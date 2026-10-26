@@ -4,10 +4,9 @@ import { Download, Plus } from 'lucide-react'
 import { db } from '../db'
 import type { GlucoseReading } from '../types'
 import { useProfile } from '../hooks/useProfile'
-import { Button, Card, ConfirmDialog, PageHeader, Segmented, Select } from '../components/ui'
+import { Button, Card, ConfirmDialog, PageHeader, Segmented } from '../components/ui'
 import { formatGlucose, glucoseUnitLabel } from '../lib/calc'
 import { RANGE_OPTIONS, fmtDateTime, rangeStartIso, toDateInput } from '../lib/dates'
-import { CONTEXT_FILTER_OPTIONS, type ContextFilter } from '../features/glucose/context'
 import { useGlucoseRange, useGlucoseReadings } from '../features/glucose/useGlucose'
 import { sortByAtDesc, summarizeGlucose } from '../features/glucose/stats'
 import { GlucoseStats } from '../features/glucose/GlucoseStats'
@@ -23,7 +22,6 @@ export default function GlucosePage() {
   const profile = useProfile()
   const { glucoseUnit: unit, targets } = profile
   const [range, setRange] = useGlucoseRange()
-  const [ctxFilter, setCtxFilter] = useState<ContextFilter>('all')
   const readings = useGlucoseReadings(range)
   const loading = readings === undefined
 
@@ -48,8 +46,8 @@ export default function GlucosePage() {
   }, [searchParams, setSearchParams])
 
   const all = useMemo(() => sortByAtDesc(readings ?? []), [readings])
-  const filtered = useMemo(() => (ctxFilter === 'all' ? all : all.filter((r) => r.context === ctxFilter)), [all, ctxFilter])
-  const summary = useMemo(() => summarizeGlucose(filtered, targets, ctxFilter), [filtered, targets, ctxFilter])
+  const filtered = all
+  const summary = useMemo(() => summarizeGlucose(filtered, targets, 'all'), [filtered, targets])
 
   const rangeDays = useMemo(() => {
     const start = rangeStartIso(range)
@@ -70,7 +68,7 @@ export default function GlucosePage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Đường huyết"
-        description={`Theo dõi chỉ số đường huyết mao mạch, đơn vị ${unitLabel}. Mục tiêu nhịn ăn ${formatGlucose(targets.fastingMin, unit)}–${formatGlucose(targets.fastingMax, unit)}, sau ăn <${formatGlucose(targets.postMealMax, unit)} ${unitLabel}.`}
+        description={`Theo dõi chỉ số đường huyết mao mạch, đơn vị ${unitLabel}. Mục tiêu trước ăn ${formatGlucose(targets.fastingMin, unit)}–${formatGlucose(targets.fastingMax, unit)}, sau ăn <${formatGlucose(targets.postMealMax, unit)} ${unitLabel}.`}
         actions={<>
           <Button
             variant="secondary"
@@ -87,14 +85,6 @@ export default function GlucosePage() {
 
       <div className="flex flex-wrap items-center gap-3">
         <Segmented value={range} onChange={setRange} options={RANGE_OPTIONS} />
-        <Select
-          aria-label="Lọc theo thời điểm đo"
-          value={ctxFilter}
-          onChange={(e) => setCtxFilter(e.target.value as ContextFilter)}
-          className="w-auto min-w-[160px]"
-        >
-          {CONTEXT_FILTER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </Select>
         {!loading && (
           <span className="text-sm text-muted ml-auto">
             {filtered.length} chỉ số · {rangeLabel}
@@ -108,14 +98,14 @@ export default function GlucosePage() {
         <Card
           className="lg:col-span-3"
           title="Xu hướng"
-          subtitle={`Từng lần đo theo thời điểm, vùng xanh là mục tiêu nhịn ăn, đường mảnh là trung bình 7 ngày${filtered.length ? ` · cập nhật ${fmtDateTime(filtered[0].at)}` : ''}`}
+          subtitle={`Từng lần đo theo thời điểm, vùng xanh là mục tiêu trước ăn, đường mảnh là trung bình 7 ngày${filtered.length ? ` · cập nhật ${fmtDateTime(filtered[0].at)}` : ''}`}
         >
           <GlucoseTrendChart readings={filtered} allReadings={all} unit={unit} targets={targets} />
         </Card>
         <Card
           className="lg:col-span-2"
           title="Theo thời điểm trong ngày"
-          subtitle="Trung bình theo từng thời điểm đo; vạch xanh/vàng là mục tiêu nhịn ăn và sau ăn"
+          subtitle="Trung bình theo từng thời điểm đo; vạch xanh/vàng là mục tiêu trước ăn và sau ăn"
         >
           <GlucoseContextChart readings={filtered} unit={unit} targets={targets} />
         </Card>

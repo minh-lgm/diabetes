@@ -12,9 +12,8 @@ export async function seedDemoData(): Promise<void> {
   const bp: BloodPressureReading[] = []
   for (let d = 89; d >= 0; d--) {
     const trend = 1 - d / 400 // slowly improving control
-    glucose.push({ at: at(d, 6, 30), valueMgdl: Math.round(rnd(95, 145) * trend), context: 'fasting' })
+    glucose.push({ at: at(d, 6, 30), valueMgdl: Math.round(rnd(95, 145) * trend), context: 'before_meal' })
     if (d % 2 === 0) glucose.push({ at: at(d, 13, 30), valueMgdl: Math.round(rnd(140, 210) * trend), context: 'after_meal' })
-    if (d % 3 === 0) glucose.push({ at: at(d, 22, 0), valueMgdl: Math.round(rnd(110, 160) * trend), context: 'bedtime' })
     if (d % 7 === 0) body.push({ at: at(d, 7, 0), weightKg: +(76 - (89 - d) * 0.03 + rnd(-0.4, 0.4)).toFixed(1), heightCm: 168, waistCm: Math.round(93 - (89 - d) * 0.02) })
     if (d % 5 === 0) bp.push({ at: at(d, 7, 15), systolic: Math.round(rnd(118, 142)), diastolic: Math.round(rnd(74, 90)), pulse: Math.round(rnd(62, 82)) })
   }
